@@ -64,6 +64,7 @@
     <p>Use the buttons below to switch the LED to on or off.</p>
     <button id='on' class="btns" type="button">ON</button>
     <button id='off' class="btns" type="button">OFF</button>
+    <button id='blink' class="btns" type="button">BLINK</button>
     <button id='toggle' class="btns" type="button">TOGGLE</button>
   </div>
   <p>led pin : 10</p>
@@ -78,6 +79,7 @@
       setBtn = document.getElementById('set'),
       onBtn = document.getElementById('on'),
       offBtn = document.getElementById('off'),
+      blinkBtn = document.getElementById('blink'),
       toggleBtn = document.getElementById('toggle'),
       ledstatus = document.getElementById('ledstatus');
 
@@ -118,6 +120,15 @@
         e.preventDefault();
         return false;
       }, false);
+
+      blinkBtn.addEventListener('click', function(e){
+        if(led.state != 'blink'){
+          ledstatus.innerHTML = "led blink!";
+          led.blink();
+        }else{
+          led.off();
+        }
+      });
 
       toggleBtn.addEventListener('click', function(e) {
         led.toggle();

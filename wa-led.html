@@ -39,6 +39,15 @@
         set: function(val) {
           this.setAttribute('state', val);
         }
+      },
+      interval: {
+          get: function(){
+              var span = Number(this.getAttribute('interval'));
+              return  span > 0 ? span : 1000;
+          },
+          set: function(val){
+              this.setAttribute('interval', val);
+          }
       }
     });
 
@@ -49,7 +58,9 @@
       this.led = new Led(board, board.getDigitalPin(this.pin));
 
       if (this.state === 'on') {
-        this.on();
+        this._on();
+      } else if(this.state === 'blink') {
+          this._blink();
       }
     };
 
@@ -68,28 +79,85 @@
     };
 
     proto.on = function(callback) {
-      this.led.on(callback);
+        this._on(true, callback);
     };
+
+    proto._on = function(changeState, callback){
+        if(changeState)
+            this.state = 'on';
+        else
+            this.led.on(callback);
+    }
 
     proto.off = function(callback) {
-      this.led.off(callback);
+        this._off(true, callback);
     };
 
+    proto._off = function(changeState, callback){
+        if(changeState)
+            this.state = 'off';
+        else
+            this.led.off(callback);
+    }
+
     proto.toggle = function(callback) {
-      this.led.toggle(callback);
+        this._toggle(true, callback);
     };
+    proto._toggle = function(changeState, callback){
+        switch(this.state){
+            case 'off':
+                this.state = 'on'
+                break;
+            case 'on':
+            case 'blink':
+                this.state = 'off';
+                break;
+        }
+    }
+
+    proto.blink = function(callback) {
+        this._blink(true, callback);
+    }
+    proto._blink = function(changeState, callback){
+        var self = this;
+        if(changeState){
+            self.state = 'blink';
+        } else {
+            this.led.blink(this.interval, function(){
+                if(typeof callback == 'function')
+                    callback.apply(self, arguments);
+            });
+        }
+    }
+    
+    proto._onstatechange = function(state){
+        this.led.unblink();
+        switch(state){
+            case 'on':
+                this._on();
+                break;
+            case 'off':
+                this._off();
+                break;
+            case 'blink':
+                this._blink();
+        }
+    }
 
     proto.attributeChangedCallback = function(attrName, oldVal, newVal) {
       if (this.led) {
         switch (attrName) {
           case 'state':
-            newVal === "on" ? this.on() : this.off();
+            this._onstatechange(newVal);
             break;
           case 'gnd':
             this.createGnd_();
             break;
           case 'intensity':
             this.led.intensity = newVal;
+            break;
+          case 'interval':
+            this.led.blink(this.interval);
             break;
         }
       }
