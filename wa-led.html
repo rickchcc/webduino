@@ -100,10 +100,7 @@
             this.led.off(callback);
     }
 
-    proto.toggle = function(callback) {
-        this._toggle(true, callback);
-    };
-    proto._toggle = function(changeState, callback){
+    proto.toggle = function(callback){
         switch(this.state){
             case 'off':
                 this.state = 'on'
@@ -129,9 +126,20 @@
             });
         }
     }
+
+    proto.stopBlink = function(){
+        this._stopBlink(true);
+    }
+    proto._stopBlink = function(changeState){
+        if(changeState){
+            this.state = 'off';
+        } else {
+            this.led.stopBlink();
+        }
+    }
     
     proto._onstatechange = function(state){
-        this.led.unblink();
+        this._stopBlink();
         switch(state){
             case 'on':
                 this._on();
